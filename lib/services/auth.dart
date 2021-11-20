@@ -24,9 +24,31 @@ class AuthService {
     }
   }
 
-  // sign with email and pass
+  // sign with @mail and pass
+  Future loginUser(String email, String pass) async {
+    try {
+      UserCredential resValue =
+          await _auth.signInWithEmailAndPassword(email: email, password: pass);
+      User? u = resValue.user;
+      return userFromFirebaseUser(u);
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
 
   //reg @mail and pass
+  Future registerUser(String email, String pass) async {
+    try {
+      UserCredential resValue = await _auth.createUserWithEmailAndPassword(
+          email: email, password: pass);
+      User? u = resValue.user;
+      return userFromFirebaseUser(u);
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
 
   //logout
 
