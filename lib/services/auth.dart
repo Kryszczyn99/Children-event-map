@@ -1,4 +1,5 @@
 import 'package:children_event_map/models/my_user.dart';
+import 'package:children_event_map/services/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
@@ -38,11 +39,14 @@ class AuthService {
   }
 
   //reg @mail and pass
-  Future registerUser(String email, String pass) async {
+  Future registerUser(
+      String email, String pass, String name, String surname) async {
     try {
       UserCredential resValue = await _auth.createUserWithEmailAndPassword(
           email: email, password: pass);
       User? u = resValue.user;
+      await DatabaseService(uid: u!.uid)
+          .setUserInformation(name, u.uid, email, surname);
       return userFromFirebaseUser(u);
     } catch (e) {
       print(e.toString());
