@@ -64,4 +64,11 @@ class AuthService {
       return null;
     }
   }
+
+  Future deleteUser(String uid) async {
+    User user = await _auth.currentUser!;
+    await user.delete();
+    await DatabaseService(uid: '').deleteUserFromDB(uid);
+    return true;
+  }
 }

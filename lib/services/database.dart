@@ -1,3 +1,4 @@
+import 'package:children_event_map/services/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseService {
@@ -23,5 +24,10 @@ class DatabaseService {
       'email': email,
       'role': 'user',
     });
+  }
+
+  Future deleteUserFromDB(String uid) async {
+    await userCollection.doc(uid).delete();
+    return true;
   }
 }

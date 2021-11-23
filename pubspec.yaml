@@ -61,6 +61,7 @@ flutter:
     - assets/images/layout_circular.png
     - assets/images/layout_triangular.png
     - assets/images/main_background.png
+    - assets/images/person.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
