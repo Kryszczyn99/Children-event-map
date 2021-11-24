@@ -1,3 +1,4 @@
+import 'package:children_event_map/screens/editing/editing.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
@@ -148,7 +149,14 @@ class Profile extends StatelessWidget {
                                           BorderRadius.all(Radius.circular(25)),
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EditData(),
+                                      ),
+                                    );
+                                  },
                                   child: Wrap(
                                     crossAxisAlignment:
                                         WrapCrossAlignment.center,
@@ -183,9 +191,9 @@ class Profile extends StatelessWidget {
                                     crossAxisAlignment:
                                         WrapCrossAlignment.center,
                                     children: [
-                                      Text('Download data  ',
+                                      Text('[Nothing here]  ',
                                           style: TextStyle(fontSize: 16)),
-                                      Icon(Icons.download_sharp),
+                                      //Icon(Icons.download_sharp),
                                     ],
                                   )),
                               ElevatedButton(

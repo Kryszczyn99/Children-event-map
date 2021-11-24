@@ -6,6 +6,9 @@ class DatabaseService {
   DatabaseService({required this.uid});
   final CollectionReference userCollection =
       FirebaseFirestore.instance.collection('usersTable');
+
+  final CollectionReference testCollection =
+      FirebaseFirestore.instance.collection('testTable');
   /*
   final CollectionReference testCollection =
       FirebaseFirestore.instance.collection('test');
@@ -24,6 +27,21 @@ class DatabaseService {
       'email': email,
       'role': 'user',
     });
+  }
+
+  Future modifyUserData(String name, String surname, String uid) async {
+    print(uid);
+    return await userCollection.doc(uid).update({
+      'name': name,
+      'surname': surname,
+      'userId': uid,
+      'email': 'krzychu@gmail.com',
+      'role': 'user',
+    });
+  }
+
+  Future test(String uid) async {
+    return await testCollection.doc(uid).set({'test': uid});
   }
 
   Future deleteUserFromDB(String uid) async {
