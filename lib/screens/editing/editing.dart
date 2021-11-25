@@ -118,6 +118,21 @@ class _EditDataState extends State<EditData> {
                         onPressed: () async {
                           await DatabaseService(uid: '').modifyUserData(
                               name, surname, user.get('userId').toString());
+
+                          Navigator.pop(context);
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                Future.delayed(Duration(seconds: 1), () {
+                                  Navigator.of(context).pop(true);
+                                });
+                                return AlertDialog(
+                                  title: Text(
+                                    'Zmieniono dane!',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              });
                         },
                         child: Text('Change data'),
                       ),

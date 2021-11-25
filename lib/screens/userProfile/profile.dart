@@ -5,6 +5,7 @@ import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:children_event_map/screens/userEvents/events.dart';
 
 class Profile extends StatelessWidget {
   //const Home({Key? key}) : super(key: key);
@@ -125,7 +126,7 @@ class Profile extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => Profile()),
+                                          builder: (context) => Events()),
                                     );
                                   },
                                   child: Wrap(
