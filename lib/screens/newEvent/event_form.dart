@@ -1,8 +1,11 @@
 import 'package:children_event_map/screens/home/home.dart';
 import 'package:children_event_map/screens/newEvent/button_widget.dart';
+import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class FormEvent extends StatefulWidget {
   const FormEvent({Key? key, required this.longitude, required this.latitude})
@@ -19,6 +22,14 @@ class _FormEventState extends State<FormEvent> {
   String hour = "--";
   String minute = "--";
   String error = "";
+  String description = "";
+  String voivodeship = "";
+  String city = "";
+  String address = "";
+  DateTime date = DateTime.now();
+
+  var uuid = Uuid();
+
   TimeOfDay selectedTime = TimeOfDay.now();
   DateTime selectedDate = DateTime.now();
   @override
@@ -78,7 +89,9 @@ class _FormEventState extends State<FormEvent> {
                     suffixIcon: Icon(Icons.location_city,
                         color: Colors.white, size: 25.0),
                   ),
-                  onChanged: (val) {},
+                  onChanged: (val) {
+                    setState(() => voivodeship = val);
+                  },
                   validator: (val) => val!.isEmpty ? 'Enter voivodeship' : null,
                 ),
                 const SizedBox(
@@ -95,7 +108,9 @@ class _FormEventState extends State<FormEvent> {
                     suffixIcon: Icon(Icons.location_city,
                         color: Colors.white, size: 25.0),
                   ),
-                  onChanged: (val) {},
+                  onChanged: (val) {
+                    setState(() => city = val);
+                  },
                   validator: (val) => val!.isEmpty ? 'Enter city' : null,
                 ),
                 const SizedBox(
@@ -112,13 +127,15 @@ class _FormEventState extends State<FormEvent> {
                     suffixIcon: Icon(Icons.location_city,
                         color: Colors.white, size: 25.0),
                   ),
-                  onChanged: (val) {},
+                  onChanged: (val) {
+                    setState(() => address = val);
+                  },
                 ),
                 const SizedBox(
                   height: 50.0,
                 ),
                 Text(
-                  'Pick event date',
+                  'Pick start event date',
                   style: TextStyle(
                     fontSize: 26,
                     color: Colors.white,
@@ -164,7 +181,24 @@ class _FormEventState extends State<FormEvent> {
                     ),
                   ],
                 ),
-                SizedBox(height: 40.0),
+                SizedBox(height: 20.0),
+                TextFormField(
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                  textAlign: TextAlign.center,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration(
+                    hintText: 'Description',
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    setState(() => description = val);
+                  },
+                ),
+                SizedBox(height: 20.0),
                 Text(
                   error,
                   style: TextStyle(
@@ -180,16 +214,35 @@ class _FormEventState extends State<FormEvent> {
                       minimumSize: MaterialStateProperty.all(Size(140, 35)),
                       shape: MaterialStateProperty.all(RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0)))),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       if (hour == "--" || minute == "--") {
                         setState(() {
                           error = "Give validate hours!";
                         });
+                      } else if (description == "") {
+                        setState(() {
+                          error = "Give event a description!";
+                        });
                       } else {
                         setState(() {
                           error = "";
                         });
+                        var event_id = uuid.v4();
+                        String onlyDate =
+                            "${selectedDate.toLocal()}".split(' ')[0];
+                        String wholeDate = onlyDate + " " + hour + ":" + minute;
+                        DateTime dateOfTheEvent = DateTime.parse(wholeDate);
+                        DatabaseService(uid: '').addEventToDatabase(
+                            FirebaseAuth.instance.currentUser!.uid,
+                            event_id,
+                            dateOfTheEvent,
+                            voivodeship,
+                            city,
+                            address,
+                            description,
+                            widget.longitude,
+                            widget.latitude);
                       }
                     }
                   },

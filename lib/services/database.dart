@@ -9,15 +9,10 @@ class DatabaseService {
 
   final CollectionReference testCollection =
       FirebaseFirestore.instance.collection('testTable');
-  /*
-  final CollectionReference testCollection =
-      FirebaseFirestore.instance.collection('test');
-  Future test() async {
-    QuerySnapshot result = await testCollection.get();
-    List<DocumentSnapshot> documents = result.docs;
-    return documents.length;
-  }
-  */
+
+  final CollectionReference eventCollection =
+      FirebaseFirestore.instance.collection('eventTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({
@@ -47,5 +42,38 @@ class DatabaseService {
   Future deleteUserFromDB(String uid) async {
     await userCollection.doc(uid).delete();
     return true;
+  }
+
+  Future addEventToDatabase(
+    String user_id,
+    String event_id,
+    DateTime date,
+    String voivodeship,
+    String city,
+    String address,
+    String description,
+    String longitude,
+    String latitude,
+  ) async {
+    print(user_id);
+    print(event_id);
+    print(date);
+    print(voivodeship);
+    print(city);
+    print(address);
+    print(description);
+    print(longitude);
+    print(latitude);
+    return await eventCollection.doc(event_id).set({
+      'user_id': user_id,
+      'event_id': event_id,
+      'date': date,
+      'voivodeship': voivodeship,
+      'city': city,
+      'address': address,
+      'description': description,
+      'longitude': longitude,
+      'latitude': latitude,
+    });
   }
 }
