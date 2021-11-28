@@ -196,7 +196,41 @@ class _InfoEventState extends State<InfoEvent> {
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0))),
                   ),
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Widget cancelButton = TextButton(
+                      child: Text("Cancel"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    );
+                    Widget continueButton = TextButton(
+                      child: Text("Continue"),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        DatabaseService(uid: '')
+                            .leaveEvent(widget.event_id, widget.user_id);
+                      },
+                    );
+
+                    // set up the AlertDialog
+                    AlertDialog alert = AlertDialog(
+                      title: Text("Alert"),
+                      content: Text("Do you want to leave event?"),
+                      actions: [
+                        cancelButton,
+                        continueButton,
+                      ],
+                    );
+
+                    // show the dialog
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return alert;
+                      },
+                    );
+                  },
                   child: Text('Leave event'),
                 ),
                 const SizedBox(
@@ -212,7 +246,40 @@ class _InfoEventState extends State<InfoEvent> {
                         minimumSize: MaterialStateProperty.all(Size(140, 35)),
                         shape: MaterialStateProperty.all(RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0)))),
-                    onPressed: () async {},
+                    onPressed: () async {
+                      Widget cancelButton = TextButton(
+                        child: Text("Cancel"),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      );
+                      Widget continueButton = TextButton(
+                        child: Text("Continue"),
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                          DatabaseService(uid: '').deleteEvent(widget.event_id);
+                        },
+                      );
+
+                      // set up the AlertDialog
+                      AlertDialog alert = AlertDialog(
+                        title: Text("Alert"),
+                        content: Text("Do you want to DELETE event?"),
+                        actions: [
+                          cancelButton,
+                          continueButton,
+                        ],
+                      );
+
+                      // show the dialog
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return alert;
+                        },
+                      );
+                    },
                     child: Text('Delete event'),
                   ),
                 )

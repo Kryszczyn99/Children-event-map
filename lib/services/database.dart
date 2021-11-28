@@ -70,4 +70,33 @@ class DatabaseService {
       'latitude': latitude,
     });
   }
+
+  Future leaveEvent(String event_id, String user_id) async {
+    var result = await participationCollection
+        .where('event_id', isEqualTo: event_id)
+        .where('user_id', isEqualTo: user_id)
+        .get();
+    var data = result.docs[0];
+
+    return await participationCollection.doc(data.id).delete();
+  }
+
+  Future deleteEvent(String event_id) async {
+    await eventCollection.doc(event_id).delete();
+    var result = await participationCollection
+        .where('event_id', isEqualTo: event_id)
+        .get();
+    for (var current in result.docs) {
+      await participationCollection.doc(current.id).delete();
+    }
+    return true;
+  }
+
+  Future joinEvent(String event_id, String user_id, String uid) async {
+    await participationCollection.doc(uid).set({
+      'event_id': event_id,
+      'user_id': user_id,
+    });
+    return true;
+  }
 }

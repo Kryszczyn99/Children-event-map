@@ -243,6 +243,11 @@ class _FormEventState extends State<FormEvent> {
                             description,
                             widget.longitude,
                             widget.latitude);
+                        var new_participation_id = uuid.v4();
+                        DatabaseService(uid: '').joinEvent(
+                            event_id,
+                            FirebaseAuth.instance.currentUser!.uid,
+                            new_participation_id);
                       }
                       Navigator.pop(context);
                       Navigator.pop(context);

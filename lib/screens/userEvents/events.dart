@@ -53,7 +53,6 @@ class _EventsState extends State<Events> {
                 child: CircularProgressIndicator(),
               );
             }
-            print(snapshot.data!.docs.length);
             return StreamBuilder(
                 stream: DatabaseService(uid: '')
                     .eventCollection
@@ -66,10 +65,18 @@ class _EventsState extends State<Events> {
                       child: CircularProgressIndicator(),
                     );
                   }
-                  print(snapshot2.data!.docs.length);
+
                   return ListView(
                     padding: EdgeInsets.only(top: 20),
                     children: snapshot2.data!.docs.map((document) {
+                      bool flag = false;
+                      for (var variable in snapshot.data!.docs) {
+                        if (variable.get('event_id') == document['event_id'])
+                          flag = true;
+                      }
+                      if (flag == false) {
+                        return Container();
+                      }
                       //final doctors = snapshot2.data;
                       Timestamp temp = document['date'];
                       DateTime date = temp.toDate();
