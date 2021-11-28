@@ -8,6 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:custom_info_window/custom_info_window.dart';
+
+import 'package:intl/intl.dart';
+
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -17,7 +21,32 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final AuthService auth = AuthService();
+  final CustomInfoWindowController _customInfoWindowController =
+      CustomInfoWindowController();
   List<Marker> _markers = [];
+  int _selectedIndex = 0;
+  void _onTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      if (_selectedIndex == 0) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else if (_selectedIndex == 1) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateEvent(),
+          ),
+        );
+      } else if (_selectedIndex == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Profile(),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +83,17 @@ class _HomeState extends State<Home> {
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: MyColors.color5,
+        unselectedItemColor: MyColors.color4,
+        onTap: _onTapped,
+      ),
       body: FutureBuilder<Position>(
           future: _determinePosition(),
           builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
@@ -67,81 +107,121 @@ class _HomeState extends State<Home> {
                         child: CircularProgressIndicator(),
                       );
                     }
+                    _markers.clear();
                     for (var result in snapshot2.data!.docs) {
                       String log = result.get('longitude');
                       String lat = result.get('latitude');
                       LatLng pos = LatLng(double.parse(lat), double.parse(log));
-                      _markers.add(Marker(
-                        markerId: MarkerId(pos.toString()),
-                        position: pos,
-                        infoWindow: InfoWindow(
-                          title: '${result.get('description')}',
+                      Timestamp temp = result.get('date');
+                      DateTime date = temp.toDate();
+                      DateFormat displayFormater =
+                          DateFormat('yyyy-MM-dd HH:mm:ss');
+                      DateTime temp2 = displayFormater.parse(date.toString());
+                      DateFormat serverFormater =
+                          DateFormat('dd-MM-yyyy HH:mm');
+                      String dateDisplay = serverFormater.format(temp2);
+                      _markers.add(
+                        Marker(
+                          markerId: MarkerId(pos.toString()),
+                          position: pos,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueMagenta),
+                          onTap: () {
+                            _customInfoWindowController.addInfoWindow!(
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(45),
+                                    border: Border.all(color: MyColors.color5)),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.account_circle,
+                                            color: Colors.white,
+                                            size: 30,
+                                          ),
+                                          SizedBox(
+                                            width: 8.0,
+                                          ),
+                                          Text(
+                                            "$dateDisplay",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text("Tag: ${result.get('tag')}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(30.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                MyColors.color4
+                                                    .withOpacity(0.5)),
+                                      ),
+                                      onPressed: () {},
+                                      child: Text("See more info"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              pos,
+                            );
+                          },
                         ),
-                        icon: BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueMagenta),
-                      ));
+                      );
                     }
-                    return Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: Column(
-                        children: <Widget>[
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height - 200,
-                            child: GoogleMap(
-                              markers: Set<Marker>.of(_markers),
-                              initialCameraPosition: CameraPosition(
-                                  target: LatLng(snapshot.data!.latitude,
-                                      snapshot.data!.longitude),
-                                  zoom: 15),
-                            ),
+                    return Stack(
+                      children: <Widget>[
+                        GoogleMap(
+                          onTap: (position) {
+                            _customInfoWindowController.hideInfoWindow!();
+                          },
+                          onCameraMove: (position) {
+                            _customInfoWindowController.onCameraMove!();
+                          },
+                          onMapCreated: (GoogleMapController controller) async {
+                            _customInfoWindowController.googleMapController =
+                                controller;
+                          },
+                          markers: Set<Marker>.of(_markers),
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(snapshot.data!.latitude,
+                                snapshot.data!.longitude),
+                            zoom: 1,
                           ),
-                          Row(
-                            children: [
-                              ElevatedButton(
-                                child: Text('Create new event'),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CreateEvent(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              SizedBox(
-                                height: 10,
-                                width: 10,
-                              ),
-                              ElevatedButton(
-                                child: Text('Current'),
-                                onPressed: () async {
-                                  Position position =
-                                      await _determinePosition();
-                                  print(position);
-                                },
-                              ),
-                              SizedBox(
-                                height: 10,
-                                width: 10,
-                              ),
-                              ElevatedButton(
-                                child: Text('Profile'),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Profile(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                        CustomInfoWindow(
+                          controller: _customInfoWindowController,
+                          height: 125,
+                          width: 185,
+                          offset: 50,
+                        ),
+                      ],
                     );
+                    //tutaj kod
                   });
             } else {
               return Center(child: CircularProgressIndicator());
@@ -174,3 +254,41 @@ class _HomeState extends State<Home> {
     return await Geolocator.getCurrentPosition();
   }
 }
+
+/*
+                    return Container(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      child: Column(
+                        children: <Widget>[
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height - 179,
+                            child: GoogleMap(
+                              markers: Set<Marker>.of(_markers),
+                              initialCameraPosition: CameraPosition(
+                                  target: LatLng(snapshot.data!.latitude,
+                                      snapshot.data!.longitude),
+                                  zoom: 15),
+                              onTap: (position) {
+                                _customInfoWindowController.hideInfoWindow!();
+                              },
+                              onCameraMove: (position) {
+                                _customInfoWindowController.onCameraMove!();
+                              },
+                              onMapCreated:
+                                  (GoogleMapController controller) async {
+                                _customInfoWindowController
+                                    .googleMapController = controller;
+                              },
+                            ),
+                          ),
+                          CustomInfoWindow(
+                            controller: _customInfoWindowController,
+                            height: 75,
+                            width: 150,
+                            offset: 50,
+                          ),
+                        ],
+                      ),
+                    );*/

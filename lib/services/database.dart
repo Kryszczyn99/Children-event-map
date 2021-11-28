@@ -57,6 +57,7 @@ class DatabaseService {
     String description,
     String longitude,
     String latitude,
+    String tag,
   ) async {
     return await eventCollection.doc(event_id).set({
       'user_id': user_id,
@@ -68,6 +69,7 @@ class DatabaseService {
       'description': description,
       'longitude': longitude,
       'latitude': latitude,
+      'tag': tag,
     });
   }
 

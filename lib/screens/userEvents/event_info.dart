@@ -234,7 +234,21 @@ class _InfoEventState extends State<InfoEvent> {
                   child: Text('Leave event'),
                 ),
                 const SizedBox(
-                  height: 10,
+                  height: 40,
+                ),
+                Visibility(
+                  visible:
+                      widget.user_id == FirebaseAuth.instance.currentUser!.uid,
+                  child: Text(
+                    'You are creator',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
                 ),
                 Visibility(
                   visible:

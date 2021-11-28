@@ -26,6 +26,7 @@ class _FormEventState extends State<FormEvent> {
   String voivodeship = "";
   String city = "";
   String address = "";
+  String tag = "";
   DateTime date = DateTime.now();
 
   var uuid = Uuid();
@@ -184,6 +185,24 @@ class _FormEventState extends State<FormEvent> {
                 SizedBox(height: 20.0),
                 TextFormField(
                   style: TextStyle(color: Colors.white, fontSize: 20),
+                  decoration: InputDecoration(
+                    hintStyle: TextStyle(color: Colors.white, fontSize: 20),
+                    fillColor: MyColors.color3.withOpacity(0.4),
+                    filled: true,
+                    contentPadding: EdgeInsets.only(left: 20, top: 15),
+                    hintText: 'Keyword (max 25letters)',
+                    suffixIcon:
+                        Icon(Icons.light, color: Colors.white, size: 25.0),
+                  ),
+                  onChanged: (val) {
+                    setState(() => tag = val);
+                  },
+                  validator: (val) =>
+                      val!.isEmpty || val.length > 25 ? 'Type keyword' : null,
+                ),
+                SizedBox(height: 20.0),
+                TextFormField(
+                  style: TextStyle(color: Colors.white, fontSize: 20),
                   textAlign: TextAlign.center,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
@@ -242,15 +261,16 @@ class _FormEventState extends State<FormEvent> {
                             address,
                             description,
                             widget.longitude,
-                            widget.latitude);
+                            widget.latitude,
+                            tag);
                         var new_participation_id = uuid.v4();
                         DatabaseService(uid: '').joinEvent(
                             event_id,
                             FirebaseAuth.instance.currentUser!.uid,
                             new_participation_id);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
                       }
-                      Navigator.pop(context);
-                      Navigator.pop(context);
                     }
                   },
                   child: Text('Create event'),
