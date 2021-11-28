@@ -13,6 +13,9 @@ class DatabaseService {
   final CollectionReference eventCollection =
       FirebaseFirestore.instance.collection('eventTable');
 
+  final CollectionReference participationCollection =
+      FirebaseFirestore.instance.collection('participationTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({
@@ -55,15 +58,6 @@ class DatabaseService {
     String longitude,
     String latitude,
   ) async {
-    print(user_id);
-    print(event_id);
-    print(date);
-    print(voivodeship);
-    print(city);
-    print(address);
-    print(description);
-    print(longitude);
-    print(latitude);
     return await eventCollection.doc(event_id).set({
       'user_id': user_id,
       'event_id': event_id,

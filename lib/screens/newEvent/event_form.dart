@@ -244,6 +244,8 @@ class _FormEventState extends State<FormEvent> {
                             widget.longitude,
                             widget.latitude);
                       }
+                      Navigator.pop(context);
+                      Navigator.pop(context);
                     }
                   },
                   child: Text('Create event'),
