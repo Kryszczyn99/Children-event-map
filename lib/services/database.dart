@@ -101,4 +101,13 @@ class DatabaseService {
     });
     return true;
   }
+
+  Future doUserParticipateInEvent(String event_id, String user_id) async {
+    var result = await participationCollection
+        .where('event_id', isEqualTo: event_id)
+        .where('user_id', isEqualTo: user_id)
+        .get();
+    if (result.docs.length > 0) return true;
+    return false;
+  }
 }

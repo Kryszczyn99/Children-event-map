@@ -1,9 +1,11 @@
 import 'package:children_event_map/screens/newEvent/create_event.dart';
+import 'package:children_event_map/screens/overview/event_overview.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -181,7 +183,32 @@ class _HomeState extends State<Home> {
                                                 MyColors.color4
                                                     .withOpacity(0.5)),
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        var res = await DatabaseService(uid: '')
+                                            .doUserParticipateInEvent(
+                                                result['event_id'],
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid);
+                                        print(res);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EventOverView(
+                                                date: dateDisplay,
+                                                voivodeship:
+                                                    result['voivodeship'],
+                                                city: result['city'],
+                                                event_id: result['event_id'],
+                                                latitude: result['latitude'],
+                                                longitude: result['longitude'],
+                                                description:
+                                                    result['description'],
+                                                user_id: result['user_id'],
+                                                tag: result['tag'],
+                                                participate: res),
+                                          ),
+                                        );
+                                      },
                                       child: Text("See more info"),
                                     ),
                                   ],
@@ -210,7 +237,7 @@ class _HomeState extends State<Home> {
                           initialCameraPosition: CameraPosition(
                             target: LatLng(snapshot.data!.latitude,
                                 snapshot.data!.longitude),
-                            zoom: 1,
+                            zoom: 10,
                           ),
                         ),
                         CustomInfoWindow(
