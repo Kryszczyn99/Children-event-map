@@ -16,6 +16,9 @@ class DatabaseService {
   final CollectionReference participationCollection =
       FirebaseFirestore.instance.collection('participationTable');
 
+  final CollectionReference postsCollection =
+      FirebaseFirestore.instance.collection('postTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({
@@ -109,5 +112,23 @@ class DatabaseService {
         .get();
     if (result.docs.length > 0) return true;
     return false;
+  }
+
+  Future addPostToDB(String text, String creator_id, String event_id,
+      String uid, DateTime time) async {
+    await postsCollection.doc(uid).set({
+      'event_id': event_id,
+      'creator_id': creator_id,
+      'text': text,
+      'date': time
+    });
+    return false;
+  }
+
+  Future giveNameAndSurnameOfUserByID(String user_id) async {
+    var result = await userCollection.where('userId', isEqualTo: user_id).get();
+    print(result.docs[0].get('name'));
+    print(result.docs[0].get('surname'));
+    return true;
   }
 }

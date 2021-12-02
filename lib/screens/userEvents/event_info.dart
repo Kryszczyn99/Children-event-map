@@ -1,4 +1,5 @@
 import 'package:children_event_map/screens/newEvent/create_event.dart';
+import 'package:children_event_map/screens/overview/event_posts.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:children_event_map/screens/overview/event_posts.dart';
 
 import 'package:intl/intl.dart';
 
@@ -106,6 +108,30 @@ class _InfoEventState extends State<InfoEvent> {
           child: Center(
             child: Column(
               children: <Widget>[
+                const SizedBox(
+                  height: 10.0,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventPosts(
+                          latitude: widget.latitude,
+                          longitude: widget.longitude,
+                          event_id: widget.event_id,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('Click here to see posts.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                        decoration: TextDecoration.underline,
+                      )),
+                ),
                 const SizedBox(
                   height: 30.0,
                 ),

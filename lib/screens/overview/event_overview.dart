@@ -1,3 +1,4 @@
+import 'package:children_event_map/screens/overview/event_posts.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -106,6 +107,29 @@ class _EventOverViewState extends State<EventOverView> {
           child: Center(
             child: Column(
               children: <Widget>[
+                const SizedBox(
+                  height: 10.0,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventPosts(
+                            latitude: widget.latitude,
+                            longitude: widget.longitude,
+                            event_id: widget.event_id),
+                      ),
+                    );
+                  },
+                  child: Text('Click here to see posts.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                        decoration: TextDecoration.underline,
+                      )),
+                ),
                 const SizedBox(
                   height: 30.0,
                 ),
