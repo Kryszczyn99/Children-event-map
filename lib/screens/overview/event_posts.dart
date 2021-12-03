@@ -295,45 +295,114 @@ class _EventPostsState extends State<EventPosts> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      FutureBuilder<dynamic>(
-                                          future: DatabaseService(uid: '')
-                                              .doItHaveLike(
-                                                  FirebaseAuth.instance
-                                                      .currentUser!.uid,
-                                                  document.id),
-                                          builder: ''),
-                                      Visibility(
-                                        child: TextButton.icon(
-                                          onPressed: () async {},
-                                          icon: Icon(
-                                            Icons.thumb_up_sharp,
-                                            color: Colors.white,
-                                          ),
-                                          label: Text(
-                                            "Like ",
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                                fontStyle: FontStyle.italic),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: TextButton.icon(
-                                          onPressed: () async {},
-                                          icon: Icon(
-                                            Icons.thumb_up_sharp,
-                                            color: Colors.blue,
-                                          ),
-                                          label: Text(
-                                            "Like ",
-                                            style: TextStyle(
-                                                color: Colors.blue,
-                                                fontSize: 14,
-                                                fontStyle: FontStyle.italic),
-                                          ),
-                                        ),
-                                      ),
+                                      StreamBuilder(
+                                          stream: DatabaseService(uid: '')
+                                              .likesCollection
+                                              .where('user_id',
+                                                  isEqualTo: FirebaseAuth
+                                                      .instance
+                                                      .currentUser!
+                                                      .uid)
+                                              .where('event_id',
+                                                  isEqualTo: widget.event_id)
+                                              .snapshots(),
+                                          builder: (BuildContext context,
+                                              AsyncSnapshot<QuerySnapshot>
+                                                  snapshot2) {
+                                            if (!snapshot2.hasData) {
+                                              return Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              );
+                                            }
+                                            return StreamBuilder(
+                                              stream: DatabaseService(uid: '')
+                                                  .likesCollection
+                                                  .where('post_id',
+                                                      isEqualTo: document.id)
+                                                  .snapshots(),
+                                              builder: (BuildContext context,
+                                                  AsyncSnapshot<QuerySnapshot>
+                                                      snapshot3) {
+                                                if (!snapshot3.hasData) {
+                                                  return Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                int len = 0;
+                                                for (var temp
+                                                    in snapshot3.data!.docs) {
+                                                  len = len + 1;
+                                                }
+                                                bool value = false;
+                                                for (var temp
+                                                    in snapshot2.data!.docs) {
+                                                  if (temp.get('user_id') ==
+                                                          FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid &&
+                                                      temp.get('post_id') ==
+                                                          document.id)
+                                                    value = true;
+                                                }
+                                                if (value == true) {
+                                                  return TextButton.icon(
+                                                    onPressed: () async {
+                                                      await DatabaseService(
+                                                              uid: '')
+                                                          .cancelLike(
+                                                              FirebaseAuth
+                                                                  .instance
+                                                                  .currentUser!
+                                                                  .uid,
+                                                              document.id);
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.thumb_up_sharp,
+                                                      color: Colors.blue,
+                                                    ),
+                                                    label: Text(
+                                                      "Like ($len)",
+                                                      style: TextStyle(
+                                                          color: Colors.blue,
+                                                          fontSize: 14,
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  );
+                                                }
+                                                return TextButton.icon(
+                                                  onPressed: () async {
+                                                    var generated_id =
+                                                        uuid.v4();
+                                                    DatabaseService(uid: '')
+                                                        .giveLike(
+                                                            FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .uid,
+                                                            document.id,
+                                                            generated_id,
+                                                            widget.event_id);
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.thumb_up_sharp,
+                                                    color: Colors.white,
+                                                  ),
+                                                  label: Text(
+                                                    "Like ($len)",
+                                                    style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          }),
                                       Visibility(
                                         visible: FirebaseAuth
                                                 .instance.currentUser!.uid ==

@@ -118,6 +118,12 @@ class DatabaseService {
   }
 
   Future deletePost(String post_id) async {
+    var result =
+        await likesCollection.where('post_id', isEqualTo: post_id).get();
+    for (var res in result.docs) {
+      print(res.id);
+      await likesCollection.doc(res.id).delete();
+    }
     return await postsCollection.doc(post_id).delete();
   }
 
@@ -140,10 +146,11 @@ class DatabaseService {
     return names;
   }
 
-  Future giveLike(String user_id, String post_id, String uid) async {
+  Future giveLike(
+      String user_id, String post_id, String uid, String event_id) async {
     return await likesCollection
         .doc(uid)
-        .set({'user_id': user_id, 'post_id': post_id});
+        .set({'user_id': user_id, 'post_id': post_id, 'event_id': event_id});
   }
 
   Future doItHaveLike(String user_id, String post_id) async {
@@ -155,7 +162,19 @@ class DatabaseService {
     return false;
   }
 
-  Future cancelLike(String like_id) async {
+  Future cancelLike(String user_id, String post_id) async {
+    var result = await likesCollection
+        .where('user_id', isEqualTo: user_id)
+        .where('post_id', isEqualTo: post_id)
+        .get();
+    await likesCollection.doc(result.docs[0].id).delete();
     return true;
+  }
+
+  Future getAllLikesByUserInEvent(String user_id, String event_id) async {
+    return await likesCollection
+        .where('user_id', isEqualTo: user_id)
+        .where('event_id', isEqualTo: event_id)
+        .get();
   }
 }
