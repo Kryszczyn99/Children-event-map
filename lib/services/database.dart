@@ -19,6 +19,9 @@ class DatabaseService {
   final CollectionReference postsCollection =
       FirebaseFirestore.instance.collection('postTable');
 
+  final CollectionReference likesCollection =
+      FirebaseFirestore.instance.collection('likeTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({
@@ -114,21 +117,45 @@ class DatabaseService {
     return false;
   }
 
+  Future deletePost(String post_id) async {
+    return await postsCollection.doc(post_id).delete();
+  }
+
   Future addPostToDB(String text, String creator_id, String event_id,
-      String uid, DateTime time) async {
+      String uid, DateTime time, String name) async {
     await postsCollection.doc(uid).set({
       'event_id': event_id,
       'creator_id': creator_id,
       'text': text,
-      'date': time
+      'date': time,
+      'author': name,
     });
     return false;
   }
 
   Future giveNameAndSurnameOfUserByID(String user_id) async {
     var result = await userCollection.where('userId', isEqualTo: user_id).get();
-    print(result.docs[0].get('name'));
-    print(result.docs[0].get('surname'));
+    String names =
+        result.docs[0].get('name') + " " + result.docs[0].get('surname');
+    return names;
+  }
+
+  Future giveLike(String user_id, String post_id, String uid) async {
+    return await likesCollection
+        .doc(uid)
+        .set({'user_id': user_id, 'post_id': post_id});
+  }
+
+  Future doItHaveLike(String user_id, String post_id) async {
+    var result = await likesCollection
+        .where('user_id', isEqualTo: user_id)
+        .where('post_id', isEqualTo: post_id)
+        .get();
+    if (result.docs.length != 0) return true;
+    return false;
+  }
+
+  Future cancelLike(String like_id) async {
     return true;
   }
 }

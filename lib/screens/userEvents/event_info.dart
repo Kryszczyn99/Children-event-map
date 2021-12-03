@@ -112,7 +112,7 @@ class _InfoEventState extends State<InfoEvent> {
                   height: 10.0,
                 ),
                 GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -120,6 +120,7 @@ class _InfoEventState extends State<InfoEvent> {
                           latitude: widget.latitude,
                           longitude: widget.longitude,
                           event_id: widget.event_id,
+                          event_creator: widget.user_id,
                         ),
                       ),
                     );

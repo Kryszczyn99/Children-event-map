@@ -14,10 +14,12 @@ class EventPosts extends StatefulWidget {
     required this.latitude,
     required this.longitude,
     required this.event_id,
+    required this.event_creator,
   });
   final String latitude;
   final String longitude;
   final String event_id;
+  final String event_creator;
   @override
   _EventPostsState createState() => _EventPostsState();
 }
@@ -95,6 +97,9 @@ class _EventPostsState extends State<EventPosts> {
           padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
           child: Center(
             child: Column(children: <Widget>[
+              SizedBox(
+                height: 20,
+              ),
               TextFormField(
                 style: TextStyle(color: Colors.white, fontSize: 20),
                 textAlign: TextAlign.center,
@@ -122,12 +127,16 @@ class _EventPostsState extends State<EventPosts> {
                 onPressed: () async {
                   var uid = uuid.v4();
                   DateTime current_time = DateTime.now();
+                  var user_name = await DatabaseService(uid: '')
+                      .giveNameAndSurnameOfUserByID(
+                          FirebaseAuth.instance.currentUser!.uid);
                   DatabaseService(uid: '').addPostToDB(
                       text,
                       FirebaseAuth.instance.currentUser!.uid,
                       widget.event_id,
                       uid,
-                      current_time);
+                      current_time,
+                      user_name);
                   showDialog(
                       context: context,
                       builder: (context) {
@@ -171,6 +180,7 @@ class _EventPostsState extends State<EventPosts> {
                         DateFormat serverFormater =
                             DateFormat('dd-MM-yyyy HH:mm');
                         String dateDisplay = serverFormater.format(temp2);
+
                         return Column(
                           children: [
                             Container(
@@ -209,13 +219,46 @@ class _EventPostsState extends State<EventPosts> {
                                       ),
                                       Column(
                                         children: [
-                                          Container(
-                                            child: Text(
-                                              'Krzysztof Pijanowski',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold),
+                                          Visibility(
+                                            visible: widget.event_creator !=
+                                                document['creator_id'],
+                                            child: Container(
+                                              child: Text(
+                                                '${document['author']}',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          Visibility(
+                                            visible: widget.event_creator ==
+                                                document['creator_id'],
+                                            child: Container(
+                                              child: RichText(
+                                                text: TextSpan(
+                                                  children: [
+                                                    TextSpan(
+                                                      text:
+                                                          "${document['author']} ",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                    WidgetSpan(
+                                                      child: Icon(
+                                                        Icons.add,
+                                                        size: 22,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
                                           ),
                                           SizedBox(
@@ -245,6 +288,79 @@ class _EventPostsState extends State<EventPosts> {
                                       ),
                                     ),
                                   ),
+                                  SizedBox(
+                                    height: 10.0,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      FutureBuilder<dynamic>(
+                                          future: DatabaseService(uid: '')
+                                              .doItHaveLike(
+                                                  FirebaseAuth.instance
+                                                      .currentUser!.uid,
+                                                  document.id),
+                                          builder: ''),
+                                      Visibility(
+                                        child: TextButton.icon(
+                                          onPressed: () async {},
+                                          icon: Icon(
+                                            Icons.thumb_up_sharp,
+                                            color: Colors.white,
+                                          ),
+                                          label: Text(
+                                            "Like ",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                        ),
+                                      ),
+                                      Visibility(
+                                        child: TextButton.icon(
+                                          onPressed: () async {},
+                                          icon: Icon(
+                                            Icons.thumb_up_sharp,
+                                            color: Colors.blue,
+                                          ),
+                                          label: Text(
+                                            "Like ",
+                                            style: TextStyle(
+                                                color: Colors.blue,
+                                                fontSize: 14,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                        ),
+                                      ),
+                                      Visibility(
+                                        visible: FirebaseAuth
+                                                .instance.currentUser!.uid ==
+                                            document['creator_id'],
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton.icon(
+                                            onPressed: () async {
+                                              await DatabaseService(uid: '')
+                                                  .deletePost(document.id);
+                                            },
+                                            icon: Icon(
+                                              Icons.restore_from_trash_sharp,
+                                              color: Colors.red,
+                                            ),
+                                            label: Text(
+                                              "",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontStyle: FontStyle.italic),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -263,8 +379,6 @@ class _EventPostsState extends State<EventPosts> {
     );
   }
 }
-
-
 
 /*
             return SingleChildScrollView(

@@ -116,9 +116,11 @@ class _EventOverViewState extends State<EventOverView> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => EventPosts(
-                            latitude: widget.latitude,
-                            longitude: widget.longitude,
-                            event_id: widget.event_id),
+                          latitude: widget.latitude,
+                          longitude: widget.longitude,
+                          event_id: widget.event_id,
+                          event_creator: widget.user_id,
+                        ),
                       ),
                     );
                   },
