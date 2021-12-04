@@ -4,10 +4,12 @@ import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:children_event_map/screens/userEvents/events.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -17,6 +19,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  String filepath = "";
   final AuthService auth = AuthService();
   int _selectedIndex = 0;
   void _onTapped(int index) {
@@ -36,6 +39,18 @@ class _ProfileState extends State<Profile> {
     });
   }
 
+/*
+  Future selectFile() async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+    if (result == null) return;
+    final path = result.files.single.path!;
+    setState(() {
+      filepath = path;
+    });
+  }
+
+  Future uploadFile() async {}
+  */
   @override
   Widget build(BuildContext context) {
     String email = "";
@@ -59,6 +74,23 @@ class _ProfileState extends State<Profile> {
           "My Profile",
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
         ),
+        /*
+        actions: <Widget>[
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              primary: MyColors.color5,
+            ),
+            onPressed: () async {
+              selectFile();
+            },
+            icon: Icon(
+              Icons.image,
+              color: Colors.white,
+            ),
+            label: Text('avatar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+        */
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -223,14 +255,16 @@ class _ProfileState extends State<Profile> {
                                           BorderRadius.all(Radius.circular(25)),
                                     ),
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    //uploadFile();
+                                  },
                                   child: Wrap(
                                     crossAxisAlignment:
                                         WrapCrossAlignment.center,
                                     children: [
-                                      Text('[Nothing here]  ',
+                                      Text('[not used]',
                                           style: TextStyle(fontSize: 16)),
-                                      //Icon(Icons.download_sharp),
+                                      Icon(Icons.download_sharp),
                                     ],
                                   )),
                               ElevatedButton(
