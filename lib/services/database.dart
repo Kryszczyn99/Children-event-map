@@ -22,6 +22,12 @@ class DatabaseService {
   final CollectionReference likesCollection =
       FirebaseFirestore.instance.collection('likeTable');
 
+  final CollectionReference voivodeshipCollection =
+      FirebaseFirestore.instance.collection('voivodeship');
+
+  final CollectionReference categoryCollection =
+      FirebaseFirestore.instance.collection('categoryTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({

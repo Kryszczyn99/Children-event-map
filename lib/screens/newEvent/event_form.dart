@@ -2,6 +2,7 @@ import 'package:children_event_map/screens/home/home.dart';
 import 'package:children_event_map/screens/newEvent/button_widget.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,9 @@ class FormEvent extends StatefulWidget {
 
 class _FormEventState extends State<FormEvent> {
   final _formKey = GlobalKey<FormState>();
+
+  bool voivodeshipCheckerflag = false;
+  bool categoryCheckerflag = false;
 
   String hour = "--";
   String minute = "--";
@@ -79,6 +83,7 @@ class _FormEventState extends State<FormEvent> {
                 const SizedBox(
                   height: 30.0,
                 ),
+                /*
                 TextFormField(
                   style: TextStyle(color: Colors.white, fontSize: 20),
                   decoration: InputDecoration(
@@ -94,6 +99,59 @@ class _FormEventState extends State<FormEvent> {
                     setState(() => voivodeship = val);
                   },
                   validator: (val) => val!.isEmpty ? 'Enter voivodeship' : null,
+                ),
+                */
+                StreamBuilder(
+                  stream: DatabaseService(uid: '')
+                      .voivodeshipCollection
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    List<String> voivodeshipArray = [];
+                    for (var voivo in snapshot.data!.docs) {
+                      voivodeshipArray.add(voivo.get('name'));
+                    }
+                    //print(voivodeshipArray);
+                    return Container(
+                      width: 300,
+                      padding: EdgeInsets.only(top: 15, right: 12),
+                      child: DropdownButtonFormField<String>(
+                        hint: Text(
+                          'Voivodeship',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                        dropdownColor: MyColors.color3,
+                        elevation: 16,
+                        icon: Icon(Icons.location_city,
+                            color: Colors.white, size: 25.0),
+                        style: TextStyle(color: MyColors.color3),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            voivodeshipCheckerflag = true;
+                            voivodeship = newValue!;
+                          });
+                        },
+                        items: voivodeshipArray
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Container(
+                              child: Text(
+                                value,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(
                   height: 30.0,
@@ -183,6 +241,58 @@ class _FormEventState extends State<FormEvent> {
                   ],
                 ),
                 SizedBox(height: 20.0),
+                StreamBuilder(
+                  stream:
+                      DatabaseService(uid: '').categoryCollection.snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    List<String> categoryArray = [];
+                    for (var voivo in snapshot.data!.docs) {
+                      categoryArray.add(voivo.get('name'));
+                    }
+                    //print(voivodeshipArray);
+                    return Container(
+                      width: 300,
+                      padding: EdgeInsets.only(top: 15, right: 12),
+                      child: DropdownButtonFormField<String>(
+                        hint: Text(
+                          'Category',
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                        dropdownColor: MyColors.color3,
+                        elevation: 16,
+                        icon: Icon(Icons.location_city,
+                            color: Colors.white, size: 25.0),
+                        style: TextStyle(color: MyColors.color3),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            categoryCheckerflag = true;
+                            tag = newValue!;
+                          });
+                        },
+                        items: categoryArray
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Container(
+                              child: Text(
+                                value,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
+                /*
                 TextFormField(
                   style: TextStyle(color: Colors.white, fontSize: 20),
                   decoration: InputDecoration(
@@ -199,7 +309,7 @@ class _FormEventState extends State<FormEvent> {
                   },
                   validator: (val) =>
                       val!.isEmpty || val.length > 25 ? 'Type keyword' : null,
-                ),
+                ),*/
                 SizedBox(height: 20.0),
                 TextFormField(
                   style: TextStyle(color: Colors.white, fontSize: 20),
@@ -235,7 +345,15 @@ class _FormEventState extends State<FormEvent> {
                           borderRadius: BorderRadius.circular(30.0)))),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      if (hour == "--" || minute == "--") {
+                      if (voivodeshipCheckerflag == false) {
+                        setState(() {
+                          error = "Pick voivodeship!";
+                        });
+                      } else if (categoryCheckerflag == false) {
+                        setState(() {
+                          error = "Pick category!";
+                        });
+                      } else if (hour == "--" || minute == "--") {
                         setState(() {
                           error = "Give validate hours!";
                         });
