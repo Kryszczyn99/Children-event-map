@@ -1,5 +1,6 @@
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/screens/overview/event_overview.dart';
+import 'package:children_event_map/screens/searching/search_main.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
@@ -65,6 +66,25 @@ class _HomeState extends State<Home> {
         backgroundColor: MyColors.color5,
         elevation: 0.0,
         centerTitle: true,
+        leadingWidth: 60,
+        leading: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            primary: MyColors.color5,
+          ),
+          onPressed: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchMain(),
+              ),
+            );
+          },
+          icon: Icon(
+            Icons.search,
+            color: Colors.white,
+          ),
+          label: Container(),
+        ),
         actions: <Widget>[
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -80,7 +100,7 @@ class _HomeState extends State<Home> {
             label: Text('logout', style: TextStyle(color: Colors.white)),
           ),
         ],
-        title: const Text(
+        title: Text(
           "Home",
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
         ),
