@@ -1,4 +1,5 @@
 import 'package:children_event_map/services/database.dart';
+import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -198,6 +199,7 @@ class _EventPostsState extends State<EventPosts> {
                                 children: [
                                   Row(
                                     children: [
+                                      /*
                                       Container(
                                         height:
                                             MediaQuery.of(context).size.width /
@@ -213,6 +215,47 @@ class _EventPostsState extends State<EventPosts> {
                                           ),
                                           shape: BoxShape.circle,
                                         ),
+                                      ),
+                                      */
+                                      FutureBuilder(
+                                        future: _getImage(context,
+                                            "${document['creator_id']}"),
+                                        builder: (BuildContext context,
+                                            AsyncSnapshot<Widget> snapshot) {
+                                          if (snapshot.data.toString() ==
+                                              "Container") {
+                                            return Container(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  10,
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  10,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  image: AssetImage(
+                                                      'assets/images/person.png'),
+                                                  fit: BoxFit.fill,
+                                                ),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            );
+                                          } else {
+                                            return Container(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  10,
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  10,
+                                              child: snapshot.data,
+                                            );
+                                          }
+                                        },
                                       ),
                                       SizedBox(
                                         width: 15,
@@ -446,6 +489,22 @@ class _EventPostsState extends State<EventPosts> {
         ),
       ),
     );
+  }
+
+  Future<Widget> _getImage(BuildContext context, String imageName) async {
+    late Image image;
+    try {
+      await FirebaseApi.loadImage(context, imageName).then((value) {
+        image = Image.network(
+          value.toString(),
+          fit: BoxFit.fill,
+        );
+      });
+    } catch (err) {
+      return Container();
+    }
+
+    return image;
   }
 }
 

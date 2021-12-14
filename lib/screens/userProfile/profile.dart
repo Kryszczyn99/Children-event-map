@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:children_event_map/screens/editing/editing.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
+import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:children_event_map/screens/userEvents/events.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -19,7 +23,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  String filepath = "";
+  late File file;
   final AuthService auth = AuthService();
   int _selectedIndex = 0;
   void _onTapped(int index) {
@@ -39,18 +43,6 @@ class _ProfileState extends State<Profile> {
     });
   }
 
-/*
-  Future selectFile() async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-    if (result == null) return;
-    final path = result.files.single.path!;
-    setState(() {
-      filepath = path;
-    });
-  }
-
-  Future uploadFile() async {}
-  */
   @override
   Widget build(BuildContext context) {
     String email = "";
@@ -74,23 +66,6 @@ class _ProfileState extends State<Profile> {
           "My Profile",
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
         ),
-        /*
-        actions: <Widget>[
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              primary: MyColors.color5,
-            ),
-            onPressed: () async {
-              selectFile();
-            },
-            icon: Icon(
-              Icons.image,
-              color: Colors.white,
-            ),
-            label: Text('avatar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-        */
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -133,17 +108,33 @@ class _ProfileState extends State<Profile> {
                                 SizedBox(
                                   height: 10,
                                 ),
-                                Container(
-                                  height: 140,
-                                  width: 140,
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                          'assets/images/person.png'),
-                                      fit: BoxFit.fill,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
+                                FutureBuilder(
+                                  future: _getImage(context,
+                                      "${FirebaseAuth.instance.currentUser!.uid}"),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<Widget> snapshot) {
+                                    if (snapshot.data.toString() ==
+                                        "Container") {
+                                      return Container(
+                                        height: 140,
+                                        width: 140,
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: AssetImage(
+                                                'assets/images/person.png'),
+                                            fit: BoxFit.fill,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      );
+                                    } else {
+                                      return Container(
+                                        height: 140,
+                                        width: 140,
+                                        child: snapshot.data,
+                                      );
+                                    }
+                                  },
                                 ),
                                 SizedBox(
                                   height: 10,
@@ -256,13 +247,39 @@ class _ProfileState extends State<Profile> {
                                     ),
                                   ),
                                   onPressed: () async {
-                                    //uploadFile();
+                                    final result = await FilePicker.platform
+                                        .pickFiles(allowMultiple: false);
+                                    final path = result!.files.single.path;
+
+                                    setState(() {
+                                      file = File(path!);
+                                    });
+                                    final destination =
+                                        "${FirebaseAuth.instance.currentUser!.uid}";
+                                    FirebaseApi.uploadFile(destination, file);
+
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          Future.delayed(Duration(seconds: 1),
+                                              () {
+                                            Navigator.of(context).pop(true);
+                                          });
+                                          return AlertDialog(
+                                            title: Text(
+                                              'Zmieniono avatar!',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          );
+                                        });
+                                    await Future.delayed(Duration(seconds: 1));
+                                    Navigator.pop(context);
                                   },
                                   child: Wrap(
                                     crossAxisAlignment:
                                         WrapCrossAlignment.center,
                                     children: [
-                                      Text('[not used]',
+                                      Text('Upload photo',
                                           style: TextStyle(fontSize: 16)),
                                       Icon(Icons.download_sharp),
                                     ],
@@ -337,5 +354,21 @@ class _ProfileState extends State<Profile> {
             }
           }),
     );
+  }
+
+  Future<Widget> _getImage(BuildContext context, String imageName) async {
+    late Image image;
+    try {
+      await FirebaseApi.loadImage(context, imageName).then((value) {
+        image = Image.network(
+          value.toString(),
+          fit: BoxFit.fill,
+        );
+      });
+    } catch (err) {
+      return Container();
+    }
+
+    return image;
   }
 }
