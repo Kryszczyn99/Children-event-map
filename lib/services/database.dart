@@ -103,6 +103,14 @@ class DatabaseService {
     for (var current in result.docs) {
       await participationCollection.doc(current.id).delete();
     }
+    result = await likesCollection.where('event_id', isEqualTo: event_id).get();
+    for (var current in result.docs) {
+      await likesCollection.doc(current.id).delete();
+    }
+    result = await postsCollection.where('event_id', isEqualTo: event_id).get();
+    for (var current in result.docs) {
+      await postsCollection.doc(current.id).delete();
+    }
     return true;
   }
 
