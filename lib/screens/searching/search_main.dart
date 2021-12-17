@@ -1,3 +1,4 @@
+import 'package:children_event_map/screens/admin/admin_lobby.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/screens/overview/event_overview.dart';
 import 'package:children_event_map/screens/userEvents/event_info.dart';
@@ -30,6 +31,12 @@ class _SearchMainState extends State<SearchMain> {
   String tag = "Wszystkie opcje";
   bool voivodeshipCheckerflag = false;
   bool categoryCheckerflag = false;
+
+  List<BottomNavigationBarItem> items = [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
+    BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+  ];
   int _selectedIndex = 0;
   void _onTapped(int index) {
     setState(() {
@@ -52,8 +59,39 @@ class _SearchMainState extends State<SearchMain> {
             builder: (context) => Profile(),
           ),
         );
+      } else if (_selectedIndex == 3) {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminLobby(),
+          ),
+        );
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    DatabaseService(uid: '')
+        .userCollection
+        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .snapshots()
+        .first
+        .then((user) => {
+              if (user.docs.first.get("role") == "admin")
+                {
+                  setState(() {
+                    items.add(
+                      BottomNavigationBarItem(
+                        label: "Admin",
+                        icon: Icon(Icons.admin_panel_settings),
+                      ),
+                    );
+                  }),
+                },
+            });
   }
 
   @override
@@ -77,11 +115,8 @@ class _SearchMainState extends State<SearchMain> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        type: BottomNavigationBarType.fixed,
+        items: List.of(items),
         currentIndex: _selectedIndex,
         selectedItemColor: MyColors.color5,
         unselectedItemColor: MyColors.color4,

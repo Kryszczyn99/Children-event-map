@@ -1,3 +1,5 @@
+import 'package:children_event_map/main.dart';
+import 'package:children_event_map/screens/admin/admin_lobby.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/screens/overview/event_overview.dart';
 import 'package:children_event_map/screens/searching/search_main.dart';
@@ -7,7 +9,9 @@ import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -27,6 +31,12 @@ class _HomeState extends State<Home> {
   final CustomInfoWindowController _customInfoWindowController =
       CustomInfoWindowController();
   List<Marker> _markers = [];
+  List<BottomNavigationBarItem> items = [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+    BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
+    BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+  ];
+
   int _selectedIndex = 0;
   void _onTapped(int index) {
     setState(() {
@@ -47,8 +57,94 @@ class _HomeState extends State<Home> {
             builder: (context) => Profile(),
           ),
         );
+      } else if (_selectedIndex == 3) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminLobby(),
+          ),
+        );
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ));
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        String? test1 = notification.title;
+        String? test2 = notification.body;
+        showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                title: Text(test1!),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(test2!)],
+                  ),
+                ),
+              );
+            });
+      }
+    });
+    super.initState();
+    DatabaseService(uid: '')
+        .userCollection
+        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .snapshots()
+        .first
+        .then((user) => {
+              if (user.docs.first.get("role") == "admin")
+                {
+                  setState(() {
+                    items.add(
+                      BottomNavigationBarItem(
+                        label: "Admin",
+                        icon: Icon(Icons.admin_panel_settings),
+                      ),
+                    );
+                  }),
+                },
+            });
+  }
+
+  void showNotification() {
+    flutterLocalNotificationsPlugin.show(
+        0,
+        "Testing ",
+        "How you doin ?",
+        NotificationDetails(
+            android: AndroidNotificationDetails(channel.id, channel.name,
+                importance: Importance.high,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher')));
   }
 
   @override
@@ -92,6 +188,7 @@ class _HomeState extends State<Home> {
             ),
             onPressed: () async {
               await auth.signOut();
+              //showNotification();
             },
             icon: Icon(
               Icons.person,
@@ -106,11 +203,8 @@ class _HomeState extends State<Home> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        type: BottomNavigationBarType.fixed,
+        items: List.of(items),
         currentIndex: _selectedIndex,
         selectedItemColor: MyColors.color5,
         unselectedItemColor: MyColors.color4,

@@ -191,4 +191,14 @@ class DatabaseService {
         .where('event_id', isEqualTo: event_id)
         .get();
   }
+
+  Future deleteCategory(String uid) async {
+    return await categoryCollection.doc(uid).delete();
+  }
+
+  Future addCategory(String uid, String text) async {
+    return categoryCollection.doc(uid).set({
+      'name': text,
+    });
+  }
 }
