@@ -259,7 +259,7 @@ class _AdminUsersState extends State<AdminUsers> {
                                                     .banUser(document.id);
                                               },
                                               icon: Icon(
-                                                Icons.cancel,
+                                                Icons.block,
                                                 color: Colors.red,
                                               ),
                                               label: Text(
