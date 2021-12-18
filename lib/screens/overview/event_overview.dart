@@ -1,11 +1,15 @@
 import 'package:children_event_map/screens/overview/event_posts.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../main.dart';
 
 class EventOverView extends StatefulWidget {
   const EventOverView(
@@ -49,6 +53,22 @@ class _EventOverViewState extends State<EventOverView> {
       ),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
     ));
+  }
+
+  void scheduleNotificationsTest(
+      String text, String tag, String city, DateTime date, String event_id) {
+    var scheduledNotificationDateTime = date;
+    flutterLocalNotificationsPlugin.schedule(
+        event_id.hashCode,
+        'Wydarzenie za godzinę ($tag - $city)',
+        text,
+        scheduledNotificationDateTime,
+        NotificationDetails(
+            android: AndroidNotificationDetails(channel.id, channel.name,
+                importance: Importance.high,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher')));
   }
 
   var uuid = Uuid();
@@ -241,6 +261,23 @@ class _EventOverViewState extends State<EventOverView> {
                               widget.event_id,
                               FirebaseAuth.instance.currentUser!.uid,
                               uid_event_new);
+                          Timestamp dateReturned =
+                              await DatabaseService(uid: '')
+                                  .getDate(widget.event_id);
+                          DateTime dateOfTheEvent = dateReturned.toDate();
+                          DateTime notificationDate = DateTime(
+                              dateOfTheEvent.year,
+                              dateOfTheEvent.month,
+                              dateOfTheEvent.day,
+                              dateOfTheEvent.hour - 1,
+                              dateOfTheEvent.minute,
+                              dateOfTheEvent.second);
+                          scheduleNotificationsTest(
+                              widget.description,
+                              widget.tag,
+                              widget.city,
+                              notificationDate,
+                              widget.event_id);
                           showDialog(
                               context: context,
                               builder: (context) {
@@ -300,6 +337,8 @@ class _EventOverViewState extends State<EventOverView> {
                           Navigator.pop(context);
                           DatabaseService(uid: '').leaveEvent(widget.event_id,
                               FirebaseAuth.instance.currentUser!.uid);
+                          flutterLocalNotificationsPlugin
+                              .cancel(widget.event_id.hashCode);
                           showDialog(
                               context: context,
                               builder: (context) {

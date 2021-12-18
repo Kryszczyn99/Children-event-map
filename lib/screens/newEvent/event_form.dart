@@ -6,7 +6,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../main.dart';
 
 class FormEvent extends StatefulWidget {
   const FormEvent({Key? key, required this.longitude, required this.latitude})
@@ -37,6 +40,23 @@ class _FormEventState extends State<FormEvent> {
 
   TimeOfDay selectedTime = TimeOfDay.now();
   DateTime selectedDate = DateTime.now();
+
+  void scheduleNotificationsTest(
+      String text, String tag, String city, DateTime date, String event_id) {
+    var scheduledNotificationDateTime = date;
+    flutterLocalNotificationsPlugin.schedule(
+        event_id.hashCode,
+        'Wydarzenie za godzinę ($tag - $city)',
+        text,
+        scheduledNotificationDateTime,
+        NotificationDetails(
+            android: AndroidNotificationDetails(channel.id, channel.name,
+                importance: Importance.high,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,24 +103,6 @@ class _FormEventState extends State<FormEvent> {
                 const SizedBox(
                   height: 30.0,
                 ),
-                /*
-                TextFormField(
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                  decoration: InputDecoration(
-                    hintStyle: TextStyle(color: Colors.white, fontSize: 20),
-                    fillColor: MyColors.color3.withOpacity(0.4),
-                    filled: true,
-                    contentPadding: EdgeInsets.only(left: 20, top: 15),
-                    hintText: 'Voivodeship',
-                    suffixIcon: Icon(Icons.location_city,
-                        color: Colors.white, size: 25.0),
-                  ),
-                  onChanged: (val) {
-                    setState(() => voivodeship = val);
-                  },
-                  validator: (val) => val!.isEmpty ? 'Enter voivodeship' : null,
-                ),
-                */
                 StreamBuilder(
                   stream: DatabaseService(uid: '')
                       .voivodeshipCollection
@@ -292,24 +294,6 @@ class _FormEventState extends State<FormEvent> {
                     );
                   },
                 ),
-                /*
-                TextFormField(
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                  decoration: InputDecoration(
-                    hintStyle: TextStyle(color: Colors.white, fontSize: 20),
-                    fillColor: MyColors.color3.withOpacity(0.4),
-                    filled: true,
-                    contentPadding: EdgeInsets.only(left: 20, top: 15),
-                    hintText: 'Keyword (max 25letters)',
-                    suffixIcon:
-                        Icon(Icons.light, color: Colors.white, size: 25.0),
-                  ),
-                  onChanged: (val) {
-                    setState(() => tag = val);
-                  },
-                  validator: (val) =>
-                      val!.isEmpty || val.length > 25 ? 'Type keyword' : null,
-                ),*/
                 SizedBox(height: 20.0),
                 TextFormField(
                   style: TextStyle(color: Colors.white, fontSize: 20),
@@ -388,6 +372,15 @@ class _FormEventState extends State<FormEvent> {
                             new_participation_id);
                         Navigator.pop(context);
                         Navigator.pop(context);
+                        DateTime notificationDate = DateTime(
+                            dateOfTheEvent.year,
+                            dateOfTheEvent.month,
+                            dateOfTheEvent.day,
+                            dateOfTheEvent.hour - 1,
+                            dateOfTheEvent.minute,
+                            dateOfTheEvent.second);
+                        scheduleNotificationsTest(
+                            description, tag, city, notificationDate, event_id);
                       }
                     }
                   },

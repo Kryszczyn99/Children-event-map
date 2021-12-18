@@ -228,4 +228,10 @@ class DatabaseService {
   Future banUser(String uid) async {
     print('Przycisk ban nie jest zaimplementowany!');
   }
+
+  Future getDate(String event_id) async {
+    var result =
+        await eventCollection.where('event_id', isEqualTo: event_id).get();
+    return result.docs[0].get('date');
+  }
 }

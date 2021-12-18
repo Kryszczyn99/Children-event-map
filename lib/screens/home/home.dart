@@ -134,6 +134,22 @@ class _HomeState extends State<Home> {
             });
   }
 
+  void scheduleNotificationsTest() {
+    var scheduledNotificationDateTime =
+        new DateTime.now().add(Duration(seconds: 10));
+    flutterLocalNotificationsPlugin.schedule(
+        1,
+        'Test',
+        'Test2',
+        scheduledNotificationDateTime,
+        NotificationDetails(
+            android: AndroidNotificationDetails(channel.id, channel.name,
+                importance: Importance.high,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher')));
+  }
+
   void showNotification() {
     flutterLocalNotificationsPlugin.show(
         0,
@@ -188,7 +204,7 @@ class _HomeState extends State<Home> {
             ),
             onPressed: () async {
               await auth.signOut();
-              //showNotification();
+              //scheduleNotificationsTest();
             },
             icon: Icon(
               Icons.person,
