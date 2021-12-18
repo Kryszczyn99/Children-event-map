@@ -40,13 +40,13 @@ class DatabaseService {
   }
 
   Future modifyUserData(String name, String surname, String uid) async {
-    print(uid);
+    var result = await userCollection.where('userId', isEqualTo: uid).get();
     return await userCollection.doc(uid).update({
       'name': name,
       'surname': surname,
       'userId': uid,
-      'email': 'krzychu@gmail.com',
-      'role': 'user',
+      'email': result.docs[0].get('email'),
+      'role': result.docs[0].get('role'),
     });
   }
 
@@ -200,5 +200,32 @@ class DatabaseService {
     return categoryCollection.doc(uid).set({
       'name': text,
     });
+  }
+
+  Future becomeUser(String uid) async {
+    var result = await userCollection.where('userId', isEqualTo: uid).get();
+
+    return await userCollection.doc(uid).update({
+      'name': result.docs[0].get('name'),
+      'surname': result.docs[0].get('surname'),
+      'userId': uid,
+      'email': result.docs[0].get('email'),
+      'role': 'user',
+    });
+  }
+
+  Future becomeAdmin(String uid) async {
+    var result = await userCollection.where('userId', isEqualTo: uid).get();
+    return await userCollection.doc(uid).update({
+      'name': result.docs[0].get('name'),
+      'surname': result.docs[0].get('surname'),
+      'userId': uid,
+      'email': result.docs[0].get('email'),
+      'role': 'admin',
+    });
+  }
+
+  Future banUser(String uid) async {
+    print('Przycisk ban nie jest zaimplementowany!');
   }
 }

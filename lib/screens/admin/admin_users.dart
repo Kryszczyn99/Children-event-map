@@ -17,7 +17,6 @@ class AdminUsers extends StatefulWidget {
 class _AdminUsersState extends State<AdminUsers> {
   int _selectedIndex = 0;
   String text = "";
-  // List<String> letters = [];
   var uuid = Uuid();
   List<BottomNavigationBarItem> items = [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -132,24 +131,23 @@ class _AdminUsersState extends State<AdminUsers> {
                   ),
                   onChanged: (val) {
                     setState(() => text = val);
-                    /*
-                    letters.clear();
-                    List<String> test = text.trim().split("");
-                    test.forEach((element) {
-                      letters.add(element);
-                    });
-                    print(letters);
-                    */
                   },
                 ),
                 SizedBox(
                   height: 10,
                 ),
+                SizedBox(
+                  height: 15,
+                ),
+                Divider(
+                  color: MyColors.color5,
+                  thickness: 1,
+                ),
                 StreamBuilder(
                     stream: DatabaseService(uid: '')
                         .userCollection
-                        //.where('email', arrayContains: letters)
-                        .orderBy('role')
+                        .where('email', isGreaterThanOrEqualTo: text)
+                        .where('email', isLessThan: text + 'z')
                         .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot2) {
@@ -168,47 +166,115 @@ class _AdminUsersState extends State<AdminUsers> {
                             return Column(
                               children: [
                                 Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 4 / 5,
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 30),
-                                  decoration: BoxDecoration(
-                                      color: MyColors.color5.withOpacity(0.8),
-                                      border: Border.all(
-                                          width: 3,
-                                          color:
-                                              MyColors.color4.withOpacity(0.8)),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(25))),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "${document['email']}",
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 16),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: TextButton.icon(
-                                          onPressed: () async {},
-                                          icon: Icon(
-                                            Icons.restore_from_trash_sharp,
-                                            color: Colors.red,
-                                          ),
-                                          label: Text(
-                                            "",
+                                    width: MediaQuery.of(context).size.width *
+                                        4 /
+                                        5,
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 5, horizontal: 30),
+                                    decoration: BoxDecoration(
+                                        color: MyColors.color5.withOpacity(0.8),
+                                        border: Border.all(
+                                            width: 3,
+                                            color: MyColors.color4
+                                                .withOpacity(0.8)),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(25))),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          "${document['email']}",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Visibility(
+                                          visible: document['role'] == 'admin',
+                                          child: Text(
+                                            "Role: ${document['role']}",
                                             style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontStyle: FontStyle.italic),
+                                                color: Colors.red,
+                                                fontSize: 16),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                        Visibility(
+                                          visible: document['role'] != 'admin',
+                                          child: Text(
+                                            "Role: ${document['role']}",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            document['role'] == 'admin'
+                                                ? TextButton.icon(
+                                                    onPressed: () async {
+                                                      await DatabaseService(
+                                                              uid: '')
+                                                          .becomeUser(
+                                                              document.id);
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.green,
+                                                    ),
+                                                    label: Text(
+                                                      "",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  )
+                                                : TextButton.icon(
+                                                    onPressed: () async {
+                                                      await DatabaseService(
+                                                              uid: '')
+                                                          .becomeAdmin(
+                                                              document.id);
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.cancel,
+                                                      color: Colors.red,
+                                                    ),
+                                                    label: Text(
+                                                      "",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  ),
+                                            TextButton.icon(
+                                              onPressed: () async {
+                                                await DatabaseService(uid: '')
+                                                    .banUser(document.id);
+                                              },
+                                              icon: Icon(
+                                                Icons.cancel,
+                                                color: Colors.red,
+                                              ),
+                                              label: Text(
+                                                "Ban",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontStyle:
+                                                        FontStyle.italic),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      ],
+                                    )),
                                 SizedBox(
                                   height: 25,
                                 ),
