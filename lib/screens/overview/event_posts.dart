@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path/path.dart';
 
 import 'package:intl/intl.dart';
 
@@ -27,6 +31,8 @@ class EventPosts extends StatefulWidget {
 
 class _EventPostsState extends State<EventPosts> {
   List<Marker> _markers = [];
+  List<File> files = [];
+  late File file;
   late LatLng point;
   @override
   void initState() {
@@ -121,6 +127,51 @@ class _EventPostsState extends State<EventPosts> {
                 height: 10,
               ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  onPrimary: Colors.white,
+                  primary: MyColors.color4,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(25)),
+                  ),
+                ),
+                onPressed: () async {
+                  final result =
+                      await FilePicker.platform.pickFiles(allowMultiple: true);
+
+                  setState(() {
+                    if (result != null) {
+                      files = result.paths.map((path) => File(path!)).toList();
+                    }
+                  });
+
+                  /*
+                  final path = result!.files.single.path;
+
+                  setState(() {
+                    file = File(path!);
+                    print('Path: ' + path);
+                  });
+                  final destination = "${widget.event_id}";
+                  print('Destination: ' + destination);
+                  */
+                  //FirebaseApi.uploadFile(destination, file);
+                },
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text('Add photo to post', style: TextStyle(fontSize: 16)),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Icon(Icons.image),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              ElevatedButton(
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(140, 35)),
                     shape: MaterialStateProperty.all(RoundedRectangleBorder(
@@ -131,6 +182,15 @@ class _EventPostsState extends State<EventPosts> {
                   var user_name = await DatabaseService(uid: '')
                       .giveNameAndSurnameOfUserByID(
                           FirebaseAuth.instance.currentUser!.uid);
+                  final destination = "${widget.event_id}/${uid}/";
+                  for (var file in files) {
+                    String base = basename(file.path);
+                    print('Filename: ' + base);
+                    FirebaseApi.uploadFile(destination + "${base}", file);
+                  }
+                  bool doesItHavePhoto = false;
+                  if (!files.isEmpty) doesItHavePhoto = true;
+                  print(doesItHavePhoto);
                   DatabaseService(uid: '').addPostToDB(
                       text,
                       FirebaseAuth.instance.currentUser!.uid,
@@ -454,6 +514,8 @@ class _EventPostsState extends State<EventPosts> {
                                           alignment: Alignment.centerRight,
                                           child: TextButton.icon(
                                             onPressed: () async {
+                                              await FirebaseApi.deleteFolder(
+                                                  "${widget.event_id}/${document.id}");
                                               await DatabaseService(uid: '')
                                                   .deletePost(document.id);
                                             },

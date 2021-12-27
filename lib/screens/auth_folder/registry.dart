@@ -149,7 +149,6 @@ class _RegisterState extends State<Register> {
                         suffixIcon:
                             Icon(Icons.person, color: Colors.white, size: 25.0),
                       ),
-                      obscureText: true,
                       validator: (val) =>
                           val!.isEmpty ? 'Enter your name' : null,
                       onChanged: (val) {
@@ -170,7 +169,6 @@ class _RegisterState extends State<Register> {
                         suffixIcon:
                             Icon(Icons.person, color: Colors.white, size: 25.0),
                       ),
-                      obscureText: true,
                       validator: (val) =>
                           val!.isEmpty ? 'Enter your surname' : null,
                       onChanged: (val) {

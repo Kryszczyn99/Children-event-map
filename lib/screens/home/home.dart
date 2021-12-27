@@ -35,6 +35,7 @@ class _HomeState extends State<Home> {
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
   ];
 
   int _selectedIndex = 0;
@@ -61,7 +62,7 @@ class _HomeState extends State<Home> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminLobby(),
+            builder: (context) => SearchMain(),
           ),
         );
       }
@@ -113,6 +114,7 @@ class _HomeState extends State<Home> {
             });
       }
     });
+    /*
     super.initState();
     DatabaseService(uid: '')
         .userCollection
@@ -132,6 +134,7 @@ class _HomeState extends State<Home> {
                   }),
                 },
             });
+            */
   }
 
   void scheduleNotificationsTest() {
@@ -294,7 +297,7 @@ class _HomeState extends State<Home> {
                                     SizedBox(
                                       height: 5,
                                     ),
-                                    Text("Tag: ${result.get('tag')}",
+                                    Text("Category: ${result.get('tag')}",
                                         style: TextStyle(
                                             color: Colors.white, fontSize: 12)),
                                     SizedBox(

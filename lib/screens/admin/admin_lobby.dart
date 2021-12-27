@@ -1,6 +1,7 @@
 import 'package:children_event_map/screens/admin/admin_category.dart';
 import 'package:children_event_map/screens/admin/admin_users.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
+import 'package:children_event_map/screens/searching/search_main.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/style/colors.dart';
@@ -19,6 +20,7 @@ class _AdminLobbyState extends State<AdminLobby> {
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
   ];
   void _onTapped(int index) {
     setState(() {
@@ -34,17 +36,26 @@ class _AdminLobbyState extends State<AdminLobby> {
           ),
         );
       } else if (_selectedIndex == 2) {
-        Navigator.pop(context);
+        Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => Profile(),
           ),
         );
+      } else if (_selectedIndex == 3) {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchMain(),
+          ),
+        );
       }
     });
   }
 
+  /*
   @override
   void initState() {
     super.initState();
@@ -67,7 +78,7 @@ class _AdminLobbyState extends State<AdminLobby> {
                 },
             });
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(

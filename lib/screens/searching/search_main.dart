@@ -36,6 +36,7 @@ class _SearchMainState extends State<SearchMain> {
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
   ];
   int _selectedIndex = 0;
   void _onTapped(int index) {
@@ -64,13 +65,14 @@ class _SearchMainState extends State<SearchMain> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminLobby(),
+            builder: (context) => SearchMain(),
           ),
         );
       }
     });
   }
 
+/*
   @override
   void initState() {
     super.initState();
@@ -93,7 +95,7 @@ class _SearchMainState extends State<SearchMain> {
                 },
             });
   }
-
+*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:children_event_map/screens/admin/admin_lobby.dart';
 import 'package:children_event_map/screens/editing/editing.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
+import 'package:children_event_map/screens/searching/search_main.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/services/firebaseapi.dart';
@@ -26,11 +27,13 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   late File file;
   final AuthService auth = AuthService();
+  bool isItAdmin = false;
   int _selectedIndex = 0;
   List<BottomNavigationBarItem> items = [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
     BottomNavigationBarItem(icon: Icon(Icons.event), label: 'New event'),
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
   ];
   void _onTapped(int index) {
     setState(() {
@@ -50,7 +53,7 @@ class _ProfileState extends State<Profile> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AdminLobby(),
+            builder: (context) => SearchMain(),
           ),
         );
       }
@@ -69,12 +72,7 @@ class _ProfileState extends State<Profile> {
               if (user.docs.first.get("role") == "admin")
                 {
                   setState(() {
-                    items.add(
-                      BottomNavigationBarItem(
-                        label: "Admin",
-                        icon: Icon(Icons.admin_panel_settings),
-                      ),
-                    );
+                    isItAdmin = true;
                   }),
                 },
             });
@@ -104,6 +102,29 @@ class _ProfileState extends State<Profile> {
           "My Profile",
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
         ),
+        actions: <Widget>[
+          Visibility(
+            visible: isItAdmin == true,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                primary: MyColors.color5,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminLobby(),
+                  ),
+                );
+              },
+              icon: Icon(
+                Icons.admin_panel_settings,
+                color: Colors.white,
+              ),
+              label: Text('admin', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -343,6 +364,11 @@ class _ProfileState extends State<Profile> {
                                       onPressed: () async {
                                         Navigator.pop(context);
                                         Navigator.pop(context);
+                                        final destination =
+                                            "${FirebaseAuth.instance.currentUser!.uid}";
+                                        await FirebaseApi.deleteFile(
+                                            destination);
+
                                         await AuthService().deleteUser(
                                             FirebaseAuth
                                                 .instance.currentUser!.uid
