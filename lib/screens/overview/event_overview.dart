@@ -1,5 +1,6 @@
 import 'package:children_event_map/screens/overview/event_posts.dart';
 import 'package:children_event_map/services/database.dart';
+import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:children_event_map/style/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -413,6 +414,8 @@ class _EventOverViewState extends State<EventOverView> {
                       Widget continueButton = TextButton(
                         child: Text("Continue"),
                         onPressed: () async {
+                          FirebaseApi.deleteEventFolder(widget.event_id);
+
                           Navigator.pop(context);
                           Navigator.pop(context);
                           DatabaseService(uid: '').deleteEvent(widget.event_id);

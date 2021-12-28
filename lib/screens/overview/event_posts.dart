@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:children_event_map/screens/overview/event_photos.dart';
 import 'package:children_event_map/services/database.dart';
 import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:children_event_map/style/colors.dart';
@@ -144,18 +145,6 @@ class _EventPostsState extends State<EventPosts> {
                       files = result.paths.map((path) => File(path!)).toList();
                     }
                   });
-
-                  /*
-                  final path = result!.files.single.path;
-
-                  setState(() {
-                    file = File(path!);
-                    print('Path: ' + path);
-                  });
-                  final destination = "${widget.event_id}";
-                  print('Destination: ' + destination);
-                  */
-                  //FirebaseApi.uploadFile(destination, file);
                 },
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -197,7 +186,8 @@ class _EventPostsState extends State<EventPosts> {
                       widget.event_id,
                       uid,
                       current_time,
-                      user_name);
+                      user_name,
+                      doesItHavePhoto);
                   showDialog(
                       context: context,
                       builder: (context) {
@@ -506,6 +496,41 @@ class _EventPostsState extends State<EventPosts> {
                                               },
                                             );
                                           }),
+                                      Visibility(
+                                        visible: document['photo'] == true,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton.icon(
+                                            onPressed: () async {
+                                              final destination =
+                                                  "${widget.event_id}/${document.id}/";
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventPhotos(
+                                                          event_id:
+                                                              widget.event_id,
+                                                          post_id: document.id,
+                                                          destination:
+                                                              destination),
+                                                ),
+                                              );
+                                            },
+                                            icon: Icon(
+                                              Icons.image,
+                                              color: Colors.white,
+                                            ),
+                                            label: Text(
+                                              "",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontStyle: FontStyle.italic),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                       Visibility(
                                         visible: FirebaseAuth
                                                 .instance.currentUser!.uid ==

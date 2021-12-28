@@ -3,6 +3,7 @@ import 'package:children_event_map/screens/overview/event_posts.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/auth.dart';
 import 'package:children_event_map/services/database.dart';
+import 'package:children_event_map/services/firebaseapi.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -297,6 +298,8 @@ class _InfoEventState extends State<InfoEvent> {
                       Widget continueButton = TextButton(
                         child: Text("Continue"),
                         onPressed: () async {
+                          FirebaseApi.deleteEventFolder(widget.event_id);
+
                           Navigator.pop(context);
                           Navigator.pop(context);
                           DatabaseService(uid: '').deleteEvent(widget.event_id);

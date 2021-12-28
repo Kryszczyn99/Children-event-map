@@ -142,13 +142,14 @@ class DatabaseService {
   }
 
   Future addPostToDB(String text, String creator_id, String event_id,
-      String uid, DateTime time, String name) async {
+      String uid, DateTime time, String name, bool photos) async {
     await postsCollection.doc(uid).set({
       'event_id': event_id,
       'creator_id': creator_id,
       'text': text,
       'date': time,
       'author': name,
+      'photo': photos
     });
     return false;
   }
@@ -233,5 +234,11 @@ class DatabaseService {
     var result =
         await eventCollection.where('event_id', isEqualTo: event_id).get();
     return result.docs[0].get('date');
+  }
+
+  Future getAllPostListByEventId(String event_id) async {
+    var result =
+        await postsCollection.where('event_id', isEqualTo: event_id).get();
+    return result;
   }
 }
