@@ -2,6 +2,7 @@ import 'package:children_event_map/screens/admin/admin_lobby.dart';
 import 'package:children_event_map/screens/home/home.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/screens/overview/event_overview.dart';
+import 'package:children_event_map/screens/searching/favs.dart';
 import 'package:children_event_map/screens/userEvents/event_info.dart';
 import 'package:children_event_map/screens/userProfile/profile.dart';
 import 'package:children_event_map/services/auth.dart';
@@ -16,6 +17,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 class SearchMain extends StatefulWidget {
   const SearchMain({Key? key}) : super(key: key);
@@ -32,6 +34,7 @@ class _SearchMainState extends State<SearchMain> {
   String tag = "Wszystkie opcje";
   bool voivodeshipCheckerflag = false;
   bool categoryCheckerflag = false;
+  var uuid = Uuid();
 
   List<BottomNavigationBarItem> items = [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -88,6 +91,26 @@ class _SearchMainState extends State<SearchMain> {
         backgroundColor: MyColors.color5,
         elevation: 0.0,
         centerTitle: true,
+        actions: <Widget>[
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              primary: MyColors.color5,
+            ),
+            onPressed: () async {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Favourites(),
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.stars,
+              color: Colors.yellow,
+            ),
+            label: Text('favs', style: TextStyle(color: Colors.white)),
+          ),
+        ],
         title: Text(
           "Search",
           style: TextStyle(fontSize: 34, fontStyle: FontStyle.italic),
@@ -294,6 +317,44 @@ class _SearchMainState extends State<SearchMain> {
                   );
                 },
                 child: Text('Check it on map',
+                    style: TextStyle(fontSize: 22, color: Colors.white)),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              ElevatedButton(
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(Size(200, 40)),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      side: BorderSide(
+                        width: 1.0,
+                        color: Colors.black,
+                      ))),
+                ),
+                onPressed: () async {
+                  //dodanie do favs
+                  var generated_id = uuid.v4();
+                  await DatabaseService(uid: "").addFavouriteToDB(
+                      tag,
+                      voivodeship,
+                      FirebaseAuth.instance.currentUser!.uid,
+                      generated_id);
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        Future.delayed(Duration(seconds: 1), () {
+                          Navigator.of(context).pop(true);
+                        });
+                        return AlertDialog(
+                          title: Text(
+                            'Favourite added!',
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      });
+                },
+                child: Text('Add to favourite',
                     style: TextStyle(fontSize: 22, color: Colors.white)),
               ),
               Visibility(

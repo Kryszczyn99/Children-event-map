@@ -28,6 +28,9 @@ class DatabaseService {
   final CollectionReference categoryCollection =
       FirebaseFirestore.instance.collection('categoryTable');
 
+  final CollectionReference favouriteCollection =
+      FirebaseFirestore.instance.collection('favsTable');
+
   Future setUserInformation(
       String name, String uid, String email, String surname) async {
     return await userCollection.doc(uid).set({
@@ -240,5 +243,15 @@ class DatabaseService {
     var result =
         await postsCollection.where('event_id', isEqualTo: event_id).get();
     return result;
+  }
+
+  Future addFavouriteToDB(
+      String category, String voivodeship, String user_id, String uid) async {
+    await favouriteCollection.doc(uid).set({
+      'user_id': user_id,
+      'voivodeship': voivodeship,
+      'category': category,
+    });
+    return false;
   }
 }

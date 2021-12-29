@@ -197,6 +197,7 @@ class _HomeState extends State<Home> {
               primary: MyColors.color5,
             ),
             onPressed: () async {
+              Navigator.of(context).popUntil((route) => route.isFirst);
               await auth.signOut();
               //scheduleNotificationsTest();
             },
