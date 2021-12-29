@@ -20,8 +20,9 @@ import 'package:custom_info_window/custom_info_window.dart';
 import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
+  const Home({required this.category, required this.voivodeship});
+  final String category;
+  final String voivodeship;
   @override
   _HomeState createState() => _HomeState();
 }
@@ -30,6 +31,7 @@ class _HomeState extends State<Home> {
   final AuthService auth = AuthService();
   final CustomInfoWindowController _customInfoWindowController =
       CustomInfoWindowController();
+  bool filters = false;
   List<Marker> _markers = [];
   List<BottomNavigationBarItem> items = [
     BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -71,6 +73,14 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    print(widget.category);
+    print(widget.voivodeship);
+    setState(() {
+      if (!((widget.category == "" || widget.category == "Wszystkie opcje") &&
+          (widget.voivodeship == "" ||
+              widget.voivodeship == "Wszystkie opcje"))) filters = true;
+    });
+    print(filters);
     super.initState();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -114,27 +124,6 @@ class _HomeState extends State<Home> {
             });
       }
     });
-    /*
-    super.initState();
-    DatabaseService(uid: '')
-        .userCollection
-        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .snapshots()
-        .first
-        .then((user) => {
-              if (user.docs.first.get("role") == "admin")
-                {
-                  setState(() {
-                    items.add(
-                      BottomNavigationBarItem(
-                        label: "Admin",
-                        icon: Icon(Icons.admin_panel_settings),
-                      ),
-                    );
-                  }),
-                },
-            });
-            */
   }
 
   void scheduleNotificationsTest() {
@@ -182,23 +171,25 @@ class _HomeState extends State<Home> {
         elevation: 0.0,
         centerTitle: true,
         leadingWidth: 60,
-        leading: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            primary: MyColors.color5,
+        leading: Visibility(
+          visible: filters == true,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              primary: MyColors.color5,
+            ),
+            onPressed: () async {
+              setState(() {
+                filters = false;
+                //widget.category = "";
+                //widget.voivodeship = "";
+              });
+            },
+            icon: Icon(
+              Icons.filter,
+              color: Colors.red,
+            ),
+            label: Container(),
           ),
-          onPressed: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SearchMain(),
-              ),
-            );
-          },
-          icon: Icon(
-            Icons.search,
-            color: Colors.white,
-          ),
-          label: Container(),
         ),
         actions: <Widget>[
           ElevatedButton.icon(
@@ -232,9 +223,476 @@ class _HomeState extends State<Home> {
       body: FutureBuilder<Position>(
           future: _determinePosition(),
           builder: (BuildContext context, AsyncSnapshot<Position> snapshot) {
-            if (snapshot.hasData) {
+            if (snapshot.hasData && filters == false) {
               return StreamBuilder(
                   stream: DatabaseService(uid: '').eventCollection.snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot2) {
+                    if (!snapshot2.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    _markers.clear();
+                    for (var result in snapshot2.data!.docs) {
+                      String log = result.get('longitude');
+                      String lat = result.get('latitude');
+                      LatLng pos = LatLng(double.parse(lat), double.parse(log));
+                      Timestamp temp = result.get('date');
+                      DateTime date = temp.toDate();
+                      DateFormat displayFormater =
+                          DateFormat('yyyy-MM-dd HH:mm:ss');
+                      DateTime temp2 = displayFormater.parse(date.toString());
+                      DateFormat serverFormater =
+                          DateFormat('dd-MM-yyyy HH:mm');
+                      String dateDisplay = serverFormater.format(temp2);
+                      _markers.add(
+                        Marker(
+                          markerId: MarkerId(pos.toString()),
+                          position: pos,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueMagenta),
+                          onTap: () {
+                            _customInfoWindowController.addInfoWindow!(
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(45),
+                                    border: Border.all(color: MyColors.color5)),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.account_circle,
+                                            color: Colors.white,
+                                            size: 30,
+                                          ),
+                                          SizedBox(
+                                            width: 8.0,
+                                          ),
+                                          Text(
+                                            "$dateDisplay",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text("Category: ${result.get('tag')}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(30.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                MyColors.color4
+                                                    .withOpacity(0.5)),
+                                      ),
+                                      onPressed: () async {
+                                        var res = await DatabaseService(uid: '')
+                                            .doUserParticipateInEvent(
+                                                result['event_id'],
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid);
+                                        print(res);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EventOverView(
+                                                date: dateDisplay,
+                                                voivodeship:
+                                                    result['voivodeship'],
+                                                city: result['city'],
+                                                event_id: result['event_id'],
+                                                latitude: result['latitude'],
+                                                longitude: result['longitude'],
+                                                description:
+                                                    result['description'],
+                                                user_id: result['user_id'],
+                                                tag: result['tag'],
+                                                participate: res),
+                                          ),
+                                        );
+                                      },
+                                      child: Text("See more info"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              pos,
+                            );
+                          },
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: <Widget>[
+                        GoogleMap(
+                          onTap: (position) {
+                            _customInfoWindowController.hideInfoWindow!();
+                          },
+                          onCameraMove: (position) {
+                            _customInfoWindowController.onCameraMove!();
+                          },
+                          onMapCreated: (GoogleMapController controller) async {
+                            _customInfoWindowController.googleMapController =
+                                controller;
+                          },
+                          markers: Set<Marker>.of(_markers),
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(snapshot.data!.latitude,
+                                snapshot.data!.longitude),
+                            zoom: 10,
+                          ),
+                        ),
+                        CustomInfoWindow(
+                          controller: _customInfoWindowController,
+                          height: 125,
+                          width: 185,
+                          offset: 50,
+                        ),
+                      ],
+                    );
+                    //tutaj kod
+                  });
+            } else if (snapshot.hasData &&
+                (widget.category == "Wszystkie opcje" ||
+                    widget.category == "")) {
+              return StreamBuilder(
+                  stream: DatabaseService(uid: '')
+                      .eventCollection
+                      .where('voivodeship', isEqualTo: widget.voivodeship)
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot2) {
+                    if (!snapshot2.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    _markers.clear();
+                    for (var result in snapshot2.data!.docs) {
+                      String log = result.get('longitude');
+                      String lat = result.get('latitude');
+                      LatLng pos = LatLng(double.parse(lat), double.parse(log));
+                      Timestamp temp = result.get('date');
+                      DateTime date = temp.toDate();
+                      DateFormat displayFormater =
+                          DateFormat('yyyy-MM-dd HH:mm:ss');
+                      DateTime temp2 = displayFormater.parse(date.toString());
+                      DateFormat serverFormater =
+                          DateFormat('dd-MM-yyyy HH:mm');
+                      String dateDisplay = serverFormater.format(temp2);
+                      _markers.add(
+                        Marker(
+                          markerId: MarkerId(pos.toString()),
+                          position: pos,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueMagenta),
+                          onTap: () {
+                            _customInfoWindowController.addInfoWindow!(
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(45),
+                                    border: Border.all(color: MyColors.color5)),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.account_circle,
+                                            color: Colors.white,
+                                            size: 30,
+                                          ),
+                                          SizedBox(
+                                            width: 8.0,
+                                          ),
+                                          Text(
+                                            "$dateDisplay",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text("Category: ${result.get('tag')}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(30.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                MyColors.color4
+                                                    .withOpacity(0.5)),
+                                      ),
+                                      onPressed: () async {
+                                        var res = await DatabaseService(uid: '')
+                                            .doUserParticipateInEvent(
+                                                result['event_id'],
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid);
+                                        print(res);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EventOverView(
+                                                date: dateDisplay,
+                                                voivodeship:
+                                                    result['voivodeship'],
+                                                city: result['city'],
+                                                event_id: result['event_id'],
+                                                latitude: result['latitude'],
+                                                longitude: result['longitude'],
+                                                description:
+                                                    result['description'],
+                                                user_id: result['user_id'],
+                                                tag: result['tag'],
+                                                participate: res),
+                                          ),
+                                        );
+                                      },
+                                      child: Text("See more info"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              pos,
+                            );
+                          },
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: <Widget>[
+                        GoogleMap(
+                          onTap: (position) {
+                            _customInfoWindowController.hideInfoWindow!();
+                          },
+                          onCameraMove: (position) {
+                            _customInfoWindowController.onCameraMove!();
+                          },
+                          onMapCreated: (GoogleMapController controller) async {
+                            _customInfoWindowController.googleMapController =
+                                controller;
+                          },
+                          markers: Set<Marker>.of(_markers),
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(snapshot.data!.latitude,
+                                snapshot.data!.longitude),
+                            zoom: 10,
+                          ),
+                        ),
+                        CustomInfoWindow(
+                          controller: _customInfoWindowController,
+                          height: 125,
+                          width: 185,
+                          offset: 50,
+                        ),
+                      ],
+                    );
+                    //tutaj kod
+                  });
+            } else if (snapshot.hasData &&
+                (widget.voivodeship == "Wszystkie opcje" ||
+                    widget.voivodeship == "")) {
+              return StreamBuilder(
+                  stream: DatabaseService(uid: '')
+                      .eventCollection
+                      .where('tag', isEqualTo: widget.category)
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot2) {
+                    if (!snapshot2.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    _markers.clear();
+                    for (var result in snapshot2.data!.docs) {
+                      String log = result.get('longitude');
+                      String lat = result.get('latitude');
+                      LatLng pos = LatLng(double.parse(lat), double.parse(log));
+                      Timestamp temp = result.get('date');
+                      DateTime date = temp.toDate();
+                      DateFormat displayFormater =
+                          DateFormat('yyyy-MM-dd HH:mm:ss');
+                      DateTime temp2 = displayFormater.parse(date.toString());
+                      DateFormat serverFormater =
+                          DateFormat('dd-MM-yyyy HH:mm');
+                      String dateDisplay = serverFormater.format(temp2);
+                      _markers.add(
+                        Marker(
+                          markerId: MarkerId(pos.toString()),
+                          position: pos,
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueMagenta),
+                          onTap: () {
+                            _customInfoWindowController.addInfoWindow!(
+                              Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(45),
+                                    border: Border.all(color: MyColors.color5)),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.account_circle,
+                                            color: Colors.white,
+                                            size: 30,
+                                          ),
+                                          SizedBox(
+                                            width: 8.0,
+                                          ),
+                                          Text(
+                                            "$dateDisplay",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text("Category: ${result.get('tag')}",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 12)),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(30.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                MyColors.color4
+                                                    .withOpacity(0.5)),
+                                      ),
+                                      onPressed: () async {
+                                        var res = await DatabaseService(uid: '')
+                                            .doUserParticipateInEvent(
+                                                result['event_id'],
+                                                FirebaseAuth
+                                                    .instance.currentUser!.uid);
+                                        print(res);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EventOverView(
+                                                date: dateDisplay,
+                                                voivodeship:
+                                                    result['voivodeship'],
+                                                city: result['city'],
+                                                event_id: result['event_id'],
+                                                latitude: result['latitude'],
+                                                longitude: result['longitude'],
+                                                description:
+                                                    result['description'],
+                                                user_id: result['user_id'],
+                                                tag: result['tag'],
+                                                participate: res),
+                                          ),
+                                        );
+                                      },
+                                      child: Text("See more info"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              pos,
+                            );
+                          },
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: <Widget>[
+                        GoogleMap(
+                          onTap: (position) {
+                            _customInfoWindowController.hideInfoWindow!();
+                          },
+                          onCameraMove: (position) {
+                            _customInfoWindowController.onCameraMove!();
+                          },
+                          onMapCreated: (GoogleMapController controller) async {
+                            _customInfoWindowController.googleMapController =
+                                controller;
+                          },
+                          markers: Set<Marker>.of(_markers),
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(snapshot.data!.latitude,
+                                snapshot.data!.longitude),
+                            zoom: 10,
+                          ),
+                        ),
+                        CustomInfoWindow(
+                          controller: _customInfoWindowController,
+                          height: 125,
+                          width: 185,
+                          offset: 50,
+                        ),
+                      ],
+                    );
+                    //tutaj kod
+                  });
+            } else if (snapshot.hasData && filters == true) {
+              return StreamBuilder(
+                  stream: DatabaseService(uid: '')
+                      .eventCollection
+                      .where('voivodeship', isEqualTo: widget.voivodeship)
+                      .where('tag', isEqualTo: widget.category)
+                      .snapshots(),
                   builder: (BuildContext context,
                       AsyncSnapshot<QuerySnapshot> snapshot2) {
                     if (!snapshot2.hasData) {
@@ -414,41 +872,3 @@ class _HomeState extends State<Home> {
     return await Geolocator.getCurrentPosition();
   }
 }
-
-/*
-                    return Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: Column(
-                        children: <Widget>[
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height - 179,
-                            child: GoogleMap(
-                              markers: Set<Marker>.of(_markers),
-                              initialCameraPosition: CameraPosition(
-                                  target: LatLng(snapshot.data!.latitude,
-                                      snapshot.data!.longitude),
-                                  zoom: 15),
-                              onTap: (position) {
-                                _customInfoWindowController.hideInfoWindow!();
-                              },
-                              onCameraMove: (position) {
-                                _customInfoWindowController.onCameraMove!();
-                              },
-                              onMapCreated:
-                                  (GoogleMapController controller) async {
-                                _customInfoWindowController
-                                    .googleMapController = controller;
-                              },
-                            ),
-                          ),
-                          CustomInfoWindow(
-                            controller: _customInfoWindowController,
-                            height: 75,
-                            width: 150,
-                            offset: 50,
-                          ),
-                        ],
-                      ),
-                    );*/

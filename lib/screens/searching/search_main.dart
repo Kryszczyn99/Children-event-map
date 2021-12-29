@@ -1,4 +1,5 @@
 import 'package:children_event_map/screens/admin/admin_lobby.dart';
+import 'package:children_event_map/screens/home/home.dart';
 import 'package:children_event_map/screens/newEvent/create_event.dart';
 import 'package:children_event_map/screens/overview/event_overview.dart';
 import 'package:children_event_map/screens/userEvents/event_info.dart';
@@ -72,30 +73,6 @@ class _SearchMainState extends State<SearchMain> {
     });
   }
 
-/*
-  @override
-  void initState() {
-    super.initState();
-    DatabaseService(uid: '')
-        .userCollection
-        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .snapshots()
-        .first
-        .then((user) => {
-              if (user.docs.first.get("role") == "admin")
-                {
-                  setState(() {
-                    items.add(
-                      BottomNavigationBarItem(
-                        label: "Admin",
-                        icon: Icon(Icons.admin_panel_settings),
-                      ),
-                    );
-                  }),
-                },
-            });
-  }
-*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -291,6 +268,33 @@ class _SearchMainState extends State<SearchMain> {
                     ),
                   );
                 },
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              ElevatedButton(
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(Size(200, 40)),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      side: BorderSide(
+                        width: 1.0,
+                        color: Colors.black,
+                      ))),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Home(
+                        voivodeship: voivodeship,
+                        category: tag,
+                      ),
+                    ),
+                  );
+                },
+                child: Text('Check it on map',
+                    style: TextStyle(fontSize: 22, color: Colors.white)),
               ),
               Visibility(
                 visible: tag == "Wszystkie opcje" &&
